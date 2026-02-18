@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Anikai Bot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#121212;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+header{
+  background:#1f1f1f;
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+}
+
+#chat{
+  flex:1;
+  overflow-y:auto;
+  padding:15px;
+}
+
+.message{
+  margin:10px 0;
+  padding:10px;
+  border-radius:10px;
+  max-width:80%;
+}
+
+.user{
+  background:#ff9800;
+  align-self:flex-end;
+}
+
+.bot{
+  background:#00bcd4;
+  align-self:flex-start;
+}
+
+#inputArea{
+  display:flex;
+  padding:10px;
+  background:#1f1f1f;
+}
+
+input{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:5px;
+  font-size:16px;
+}
+
+button{
+  margin-left:10px;
+  padding:10px 15px;
+  border:none;
+  border-radius:5px;
+  background:#4caf50;
+  color:white;
+  font-size:16px;
+}
+</style>
+</head>
+<body>
+
+<header>🤖 Anikai Bot</header>
+
+<div id="chat"></div>
+
+<div id="inputArea">
+  <input type="text" id="input" placeholder="Mesaj yaz...">
+  <button onclick="send()">Gönder</button>
+</div>
+
+<script>
+function send(){
+  let input = document.getElementById("input");
+  let text = input.value.trim();
+  if(text === "") return;
+
+  addMessage(text, "user");
+
+  let reply = getReply(text.toLowerCase());
+
+  setTimeout(() => {
+    addMessage(reply, "bot");
+  }, 500);
+
+  input.value = "";
+}
+
+function addMessage(text, type){
+  let chat = document.getElementById("chat");
+  let div = document.createElement("div");
+  div.className = "message " + type;
+  div.innerText = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function getReply(msg){
+
+  if(msg.includes("merhaba"))
+    return "Selam 😎";
+
+  if(msg.includes("nasılsın"))
+    return "İyiyim, sen nasılsın?";
+
+  if(msg.includes("oyun"))
+    return "Oyun modu aktif 🎮";
+
+  if(msg.includes("kim"))
+    return "Ben Anikai Bot 🤖";
+
+  let replies = [
+    "Bunu analiz ediyorum...",
+    "İlginç söyledin.",
+    "Biraz daha açık yazabilir misin?",
+    "Sistemi düşünüyorum..."
+  ];
+
+  return replies[Math.floor(Math.random()*replies.length)];
+}
+</script>
+
+</body>
+</html>
