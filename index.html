@@ -1,135 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Anikai Bot</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#121212;
-  color:white;
-  display:flex;
-  flex-direction:column;
-  height:100vh;
-}
-
-header{
-  background:#1f1f1f;
-  padding:15px;
-  text-align:center;
-  font-size:20px;
-}
-
-#chat{
-  flex:1;
-  overflow-y:auto;
-  padding:15px;
-}
-
-.message{
-  margin:10px 0;
-  padding:10px;
-  border-radius:10px;
-  max-width:80%;
-}
-
-.user{
-  background:#ff9800;
-  align-self:flex-end;
-}
-
-.bot{
-  background:#00bcd4;
-  align-self:flex-start;
-}
-
-#inputArea{
-  display:flex;
-  padding:10px;
-  background:#1f1f1f;
-}
-
-input{
-  flex:1;
-  padding:10px;
-  border:none;
-  border-radius:5px;
-  font-size:16px;
-}
-
-button{
-  margin-left:10px;
-  padding:10px 15px;
-  border:none;
-  border-radius:5px;
-  background:#4caf50;
-  color:white;
-  font-size:16px;
-}
-</style>
+<title>AniKai Voice Bot</title>
 </head>
-<body>
+<body style="text-align:center; font-family:Arial; background:#111; color:white;">
 
-<header>🤖 Anikai Bot</header>
+<h1>AniKai Voice Bot 🎙️</h1>
 
-<div id="chat"></div>
+<!-- Logo -->
+<img src="anikai.png" width="200" alt="AniKai Logo">
 
-<div id="inputArea">
-  <input type="text" id="input" placeholder="Mesaj yaz...">
-  <button onclick="send()">Gönder</button>
-</div>
+<br><br>
+
+<button onclick="startListening()" style="padding:10px 20px; font-size:16px;">
+🎤 Konuşmaya Başla
+</button>
+
+<p id="text"></p>
 
 <script>
-function send(){
-  let input = document.getElementById("input");
-  let text = input.value.trim();
-  if(text === "") return;
+const textOutput = document.getElementById("text");
 
-  addMessage(text, "user");
-
-  let reply = getReply(text.toLowerCase());
-
-  setTimeout(() => {
-    addMessage(reply, "bot");
-  }, 500);
-
-  input.value = "";
+function speak(text) {
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "tr-TR";
+    window.speechSynthesis.speak(speech);
 }
 
-function addMessage(text, type){
-  let chat = document.getElementById("chat");
-  let div = document.createElement("div");
-  div.className = "message " + type;
-  div.innerText = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
+function startListening() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "tr-TR";
+    recognition.start();
 
-function getReply(msg){
+    recognition.onresult = function(event) {
+        const userText = event.results[0][0].transcript;
+        textOutput.innerHTML = "Sen: " + userText;
 
-  if(msg.includes("merhaba"))
-    return "Selam 😎";
+        let response = "Seni duydum.";
 
-  if(msg.includes("nasılsın"))
-    return "İyiyim, sen nasılsın?";
+        if (userText.includes("merhaba")) {
+            response = "Merhaba! Ben AniKai.";
+        }
 
-  if(msg.includes("oyun"))
-    return "Oyun modu aktif 🎮";
+        if (userText.includes("nasılsın")) {
+            response = "Harikayım! Sen nasılsın?";
+        }
 
-  if(msg.includes("kim"))
-    return "Ben Anikai Bot 🤖";
-
-  let replies = [
-    "Bunu analiz ediyorum...",
-    "İlginç söyledin.",
-    "Biraz daha açık yazabilir misin?",
-    "Sistemi düşünüyorum..."
-  ];
-
-  return replies[Math.floor(Math.random()*replies.length)];
+        speak(response);
+    };
 }
 </script>
 
