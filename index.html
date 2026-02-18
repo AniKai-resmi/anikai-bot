@@ -10,17 +10,17 @@ body{
     margin:0;
     overflow:hidden;
     background: radial-gradient(circle at top, #6a007a, #1a001f);
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     text-align:center;
     color:white;
 }
 
-/* Sakura yaprak */
+/* Sakura */
 .sakura{
     position:absolute;
     top:-50px;
-    width:20px;
-    height:20px;
+    width:18px;
+    height:18px;
     background: radial-gradient(circle at 30% 30%, #ffc0cb, #ff69b4);
     border-radius: 50% 50% 50% 0;
     transform: rotate(45deg);
@@ -34,14 +34,14 @@ body{
     }
 }
 
-/* Ortadaki alan */
+/* Container */
 .container{
     position:relative;
     z-index:10;
-    margin-top:100px;
+    margin-top:80px;
 }
 
-/* Daire */
+/* Logo circle */
 .circle{
     width:220px;
     height:220px;
@@ -51,47 +51,52 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    margin:0 auto 30px auto;
+    margin:0 auto;
+    position:relative;
     box-shadow:0 0 40px #ff00ff;
 }
 
-/* Logo */
+/* Circular wave */
+.ring{
+    position:absolute;
+    width:260px;
+    height:260px;
+    border-radius:50%;
+    border:4px solid #ff00ff;
+    animation: pulse 1.5s infinite;
+    opacity:0.6;
+}
+
+@keyframes pulse{
+    0%{ transform: scale(1); opacity:0.6;}
+    50%{ transform: scale(1.2); opacity:0.2;}
+    100%{ transform: scale(1); opacity:0.6;}
+}
+
 .logo{
     width:140px;
 }
 
-/* Başlık */
 h1{
     font-size:60px;
     color:#ff66ff;
     text-shadow:0 0 25px #ff00ff;
 }
 
-/* Ses dalgası */
-.wave{
-    margin:30px auto;
-    width:200px;
-    height:40px;
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
+/* Settings panel */
+.settings{
+    position:fixed;
+    right:20px;
+    top:20px;
+    background:rgba(0,0,0,0.6);
+    padding:15px;
+    border-radius:15px;
+    box-shadow:0 0 20px #ff00ff;
+    font-size:14px;
 }
 
-.bar{
-    width:10px;
-    height:10px;
-    background:#ff00ff;
-    animation:wave 1s infinite ease-in-out;
-}
-
-.bar:nth-child(2){ animation-delay:0.1s; }
-.bar:nth-child(3){ animation-delay:0.2s; }
-.bar:nth-child(4){ animation-delay:0.3s; }
-.bar:nth-child(5){ animation-delay:0.4s; }
-
-@keyframes wave{
-    0%,100%{ height:10px; }
-    50%{ height:40px; }
+.settings input{
+    width:100%;
 }
 
 .status{
@@ -106,45 +111,50 @@ h1{
 <div class="container">
 
 <div class="circle">
+    <div class="ring"></div>
     <img src="anikai.png" class="logo">
 </div>
 
 <h1>AniBot</h1>
 
-<div class="wave">
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-</div>
-
 <p class="status" id="status">Dinlemeye Hazır...</p>
 
 </div>
 
+<!-- Ayarlar -->
+<div class="settings">
+<b>Ayarlar</b><br><br>
+
+Ses Seviyesi
+<input type="range" id="volume" min="0" max="1" step="0.1" value="1">
+
+Konuşma Hızı
+<input type="range" id="rate" min="0.5" max="2" step="0.1" value="1">
+
+<br><br>
+<button onclick="toggleMic()">Mikrofon Aç/Kapat</button>
+</div>
+
 <script>
 
-/* Gerçek sakura üretimi */
+/* Sakura */
 function createSakura(){
     const sakura = document.createElement("div");
     sakura.classList.add("sakura");
-
     sakura.style.left = Math.random() * window.innerWidth + "px";
     sakura.style.animationDuration = (6 + Math.random()*4) + "s";
-
     document.body.appendChild(sakura);
-
-    setTimeout(()=>{
-        sakura.remove();
-    },10000);
+    setTimeout(()=>{ sakura.remove(); },10000);
 }
-
 setInterval(createSakura,400);
 
-/* Ses sistemi */
+/* Ses Sistemi */
 const statusText = document.getElementById("status");
+const volumeSlider = document.getElementById("volume");
+const rateSlider = document.getElementById("rate");
+
 let recognition;
+let micActive = true;
 
 if ('webkitSpeechRecognition' in window) {
     recognition = new webkitSpeechRecognition();
@@ -156,10 +166,6 @@ if(recognition){
     recognition.lang = "tr-TR";
     recognition.continuous = true;
 
-    recognition.onstart = function(){
-        statusText.innerHTML = "Seni dinliyorum... 🎧";
-    }
-
     recognition.onresult = function(event){
         const userText = event.results[event.results.length-1][0].transcript;
         statusText.innerHTML = "Sen: " + userText;
@@ -167,16 +173,30 @@ if(recognition){
     }
 
     recognition.onend = function(){
-        recognition.start();
+        if(micActive) recognition.start();
     }
 
     recognition.start();
 }
 
-/* Sesli cevap */
+function toggleMic(){
+    if(micActive){
+        micActive = false;
+        recognition.stop();
+        statusText.innerHTML = "Mikrofon Kapalı";
+    }else{
+        micActive = true;
+        recognition.start();
+        statusText.innerHTML = "Dinliyorum...";
+    }
+}
+
 function speak(text){
+    window.speechSynthesis.cancel();
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "tr-TR";
+    speech.volume = volumeSlider.value;
+    speech.rate = rateSlider.value;
     speech.pitch = 1.2;
     window.speechSynthesis.speak(speech);
 }
