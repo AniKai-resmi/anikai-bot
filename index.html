@@ -3,58 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AniKai v2</title>
+<title>AniBot</title>
 
 <style>
 body{
     margin:0;
     overflow:hidden;
     background: radial-gradient(circle at top, #6a007a, #1a001f);
-    font-family: Arial;
-    color:white;
+    font-family: Arial, sans-serif;
     text-align:center;
+    color:white;
 }
 
-/* Sakura */
+/* Sakura yaprak */
 .sakura{
     position:absolute;
-    top:-10px;
-    width:15px;
-    height:15px;
-    background:pink;
-    border-radius:50%;
-    opacity:0.7;
-    animation:fall linear infinite;
+    top:-50px;
+    width:20px;
+    height:20px;
+    background: radial-gradient(circle at 30% 30%, #ffc0cb, #ff69b4);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(45deg);
+    opacity:0.8;
+    animation: fall linear infinite;
 }
 
 @keyframes fall{
     to{
-        transform:translateY(110vh) rotate(360deg);
+        transform: translateY(110vh) rotate(720deg);
     }
 }
 
+/* Ortadaki alan */
 .container{
-    margin-top:100px;
     position:relative;
     z-index:10;
+    margin-top:100px;
 }
 
+/* Daire */
+.circle{
+    width:220px;
+    height:220px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 30px auto;
+    box-shadow:0 0 40px #ff00ff;
+}
+
+/* Logo */
 .logo{
-    width:180px;
+    width:140px;
 }
 
+/* Başlık */
 h1{
     font-size:60px;
     color:#ff66ff;
     text-shadow:0 0 25px #ff00ff;
 }
 
+/* Ses dalgası */
 .wave{
     margin:30px auto;
     width:200px;
-    height:20px;
+    height:40px;
     display:flex;
     justify-content:space-between;
+    align-items:flex-end;
 }
 
 .bar{
@@ -76,7 +96,6 @@ h1{
 
 .status{
     margin-top:20px;
-    font-size:18px;
     color:#ffccff;
 }
 </style>
@@ -86,11 +105,13 @@ h1{
 
 <div class="container">
 
-<img src="anikai.png" class="logo">
+<div class="circle">
+    <img src="anikai.png" class="logo">
+</div>
 
-<h1>AniKai</h1>
+<h1>AniBot</h1>
 
-<div class="wave" id="wave">
+<div class="wave">
     <div class="bar"></div>
     <div class="bar"></div>
     <div class="bar"></div>
@@ -103,17 +124,23 @@ h1{
 </div>
 
 <script>
-/* Sakura üretme */
+
+/* Gerçek sakura üretimi */
 function createSakura(){
     const sakura = document.createElement("div");
     sakura.classList.add("sakura");
+
     sakura.style.left = Math.random() * window.innerWidth + "px";
-    sakura.style.animationDuration = (5 + Math.random()*5) + "s";
+    sakura.style.animationDuration = (6 + Math.random()*4) + "s";
+
     document.body.appendChild(sakura);
 
-    setTimeout(()=>{ sakura.remove(); },10000);
+    setTimeout(()=>{
+        sakura.remove();
+    },10000);
 }
-setInterval(createSakura,300);
+
+setInterval(createSakura,400);
 
 /* Ses sistemi */
 const statusText = document.getElementById("status");
@@ -128,26 +155,19 @@ if ('webkitSpeechRecognition' in window) {
 if(recognition){
     recognition.lang = "tr-TR";
     recognition.continuous = true;
-    recognition.interimResults = false;
 
     recognition.onstart = function(){
         statusText.innerHTML = "Seni dinliyorum... 🎧";
     }
 
-    recognition.onresult = async function(event){
+    recognition.onresult = function(event){
         const userText = event.results[event.results.length-1][0].transcript;
         statusText.innerHTML = "Sen: " + userText;
-
-        let response = await getAIResponse(userText);
-        speak(response);
-    }
-
-    recognition.onerror = function(event){
-        statusText.innerHTML = "Hata: " + event.error;
+        speak("Seni duydum.");
     }
 
     recognition.onend = function(){
-        recognition.start(); // sürekli dinleme
+        recognition.start();
     }
 
     recognition.start();
@@ -158,23 +178,7 @@ function speak(text){
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "tr-TR";
     speech.pitch = 1.2;
-    speech.rate = 1;
     window.speechSynthesis.speak(speech);
-}
-
-/* AI bağlantı hazır alan */
-async function getAIResponse(message){
-
-    // Şimdilik basit cevap sistemi
-    if(message.toLowerCase().includes("merhaba")){
-        return "Merhaba! Anime dünyasına hoş geldin.";
-    }
-
-    if(message.toLowerCase().includes("kim")){
-        return "Ben AniKai. Senin anime asistanınım.";
-    }
-
-    return "Bunu düşündürücü buldum.";
 }
 
 </script>
