@@ -2,54 +2,181 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>AniKai Voice Bot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AniKai v2</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background: radial-gradient(circle at top, #6a007a, #1a001f);
+    font-family: Arial;
+    color:white;
+    text-align:center;
+}
+
+/* Sakura */
+.sakura{
+    position:absolute;
+    top:-10px;
+    width:15px;
+    height:15px;
+    background:pink;
+    border-radius:50%;
+    opacity:0.7;
+    animation:fall linear infinite;
+}
+
+@keyframes fall{
+    to{
+        transform:translateY(110vh) rotate(360deg);
+    }
+}
+
+.container{
+    margin-top:100px;
+    position:relative;
+    z-index:10;
+}
+
+.logo{
+    width:180px;
+}
+
+h1{
+    font-size:60px;
+    color:#ff66ff;
+    text-shadow:0 0 25px #ff00ff;
+}
+
+.wave{
+    margin:30px auto;
+    width:200px;
+    height:20px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.bar{
+    width:10px;
+    height:10px;
+    background:#ff00ff;
+    animation:wave 1s infinite ease-in-out;
+}
+
+.bar:nth-child(2){ animation-delay:0.1s; }
+.bar:nth-child(3){ animation-delay:0.2s; }
+.bar:nth-child(4){ animation-delay:0.3s; }
+.bar:nth-child(5){ animation-delay:0.4s; }
+
+@keyframes wave{
+    0%,100%{ height:10px; }
+    50%{ height:40px; }
+}
+
+.status{
+    margin-top:20px;
+    font-size:18px;
+    color:#ffccff;
+}
+</style>
 </head>
-<body style="text-align:center; font-family:Arial; background:#111; color:white;">
 
-<h1>AniKai Voice Bot 🎙️</h1>
+<body>
 
-<!-- Logo -->
-<img src="anikai.png" width="200" alt="AniKai Logo">
+<div class="container">
 
-<br><br>
+<img src="anikai.png" class="logo">
 
-<button onclick="startListening()" style="padding:10px 20px; font-size:16px;">
-🎤 Konuşmaya Başla
-</button>
+<h1>AniKai</h1>
 
-<p id="text"></p>
+<div class="wave" id="wave">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+</div>
+
+<p class="status" id="status">Dinlemeye Hazır...</p>
+
+</div>
 
 <script>
-const textOutput = document.getElementById("text");
+/* Sakura üretme */
+function createSakura(){
+    const sakura = document.createElement("div");
+    sakura.classList.add("sakura");
+    sakura.style.left = Math.random() * window.innerWidth + "px";
+    sakura.style.animationDuration = (5 + Math.random()*5) + "s";
+    document.body.appendChild(sakura);
 
-function speak(text) {
+    setTimeout(()=>{ sakura.remove(); },10000);
+}
+setInterval(createSakura,300);
+
+/* Ses sistemi */
+const statusText = document.getElementById("status");
+let recognition;
+
+if ('webkitSpeechRecognition' in window) {
+    recognition = new webkitSpeechRecognition();
+} else if ('SpeechRecognition' in window) {
+    recognition = new SpeechRecognition();
+}
+
+if(recognition){
+    recognition.lang = "tr-TR";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onstart = function(){
+        statusText.innerHTML = "Seni dinliyorum... 🎧";
+    }
+
+    recognition.onresult = async function(event){
+        const userText = event.results[event.results.length-1][0].transcript;
+        statusText.innerHTML = "Sen: " + userText;
+
+        let response = await getAIResponse(userText);
+        speak(response);
+    }
+
+    recognition.onerror = function(event){
+        statusText.innerHTML = "Hata: " + event.error;
+    }
+
+    recognition.onend = function(){
+        recognition.start(); // sürekli dinleme
+    }
+
+    recognition.start();
+}
+
+/* Sesli cevap */
+function speak(text){
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "tr-TR";
+    speech.pitch = 1.2;
+    speech.rate = 1;
     window.speechSynthesis.speak(speech);
 }
 
-function startListening() {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = "tr-TR";
-    recognition.start();
+/* AI bağlantı hazır alan */
+async function getAIResponse(message){
 
-    recognition.onresult = function(event) {
-        const userText = event.results[0][0].transcript;
-        textOutput.innerHTML = "Sen: " + userText;
+    // Şimdilik basit cevap sistemi
+    if(message.toLowerCase().includes("merhaba")){
+        return "Merhaba! Anime dünyasına hoş geldin.";
+    }
 
-        let response = "Seni duydum.";
+    if(message.toLowerCase().includes("kim")){
+        return "Ben AniKai. Senin anime asistanınım.";
+    }
 
-        if (userText.includes("merhaba")) {
-            response = "Merhaba! Ben AniKai.";
-        }
-
-        if (userText.includes("nasılsın")) {
-            response = "Harikayım! Sen nasılsın?";
-        }
-
-        speak(response);
-    };
+    return "Bunu düşündürücü buldum.";
 }
+
 </script>
 
 </body>
